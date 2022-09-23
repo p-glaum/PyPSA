@@ -1534,6 +1534,9 @@ class Network(Basic):
             dtypes_soll = c.attrs.loc[c.attrs["static"], "dtype"].drop("name")
             unmatched = c.df.dtypes[dtypes_soll.index] != dtypes_soll
 
+            required_input = c.attrs.loc[c.attrs["static"],"status"].str.contains("required").drop("name")
+            contains_nan=c.df.loc[:,required_input.index[required_input]].isna().any()
+
             if unmatched.any():
                 logger.warning(
                     "The following attributes of the dataframe %s "
@@ -1543,6 +1546,13 @@ class Network(Basic):
                     unmatched.index[unmatched],
                     c.df.dtypes[dtypes_soll.index[unmatched]],
                     dtypes_soll[unmatched],
+                )
+            if contains_nan.any():
+                logger.warning(
+                    "The following attributes of the dataframe %s "
+                    "have nan values which could lead to problems in the optimisation:\n%s\n",
+                    c.list_name,
+                    contains_nan.index[contains_nan],
                 )
 
             # now check varying attributes
@@ -1554,6 +1564,8 @@ class Network(Basic):
                     continue
 
                 unmatched = c.pnl[attr].dtypes != dtype
+                contains_nan=c.pnl[attr].isna().any()
+
 
                 if unmatched.any():
                     logger.warning(
@@ -1565,6 +1577,15 @@ class Network(Basic):
                         unmatched.index[unmatched],
                         c.pnl[attr].dtypes[unmatched],
                         typ,
+                    )
+                
+                if contains_nan.any():
+                    logger.warning(
+                        "The following columns of time-varying attribute "
+                        "%s in %s_t contains nan values:\n%s\n",
+                        attr,
+                        c.list_name,
+                        contains_nan.index[contains_nan],
                     )
 
 
