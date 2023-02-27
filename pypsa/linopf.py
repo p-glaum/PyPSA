@@ -885,8 +885,13 @@ def define_global_constraints(n, sns):
 
             if ext_i.empty:
                 continue
+            if c == "Link":
+                factor = 1 - n.df(c).underwater_fraction[ext_i]
+            else:
+                factor = 1
             v = linexpr(
-                (n.df(c).length[ext_i], get_var(n, c, attr)[ext_i]), as_pandas=False
+                (n.df(c).length[ext_i] * factor, get_var(n, c, attr)[ext_i]),
+                as_pandas=False,
             )
             lhs += "\n" + join_exprs(v)
         if lhs == "":
